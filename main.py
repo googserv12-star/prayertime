@@ -13,8 +13,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 
 # ------------------- تنظیمات -------------------
-BOT_TOKEN = "8272361954:AAG8DeqJE1gl5jtINNWw4GMyL-hX_FvAgZ0"
-CHANNEL_ID = -1003016016245  # آیدی کانال عددی
+BOT_TOKEN = os.getenv("BOT_TOKEN", "توکن_ربات_اینجا")
+CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1003016016245"))  # آیدی کانال عددی
 FONT_PATH = "Vazir.ttf"
 
 logging.basicConfig(level=logging.INFO)
@@ -102,29 +102,22 @@ async def send_table_to_channel():
 async def send_daily_message():
     bot = Bot(BOT_TOKEN)
     async with bot:
-        await bot.send_message(chat_id=CHANNEL_ID, text="سلام! این پیام زمان‌بندی‌شده است ⏰")
+        await bot.send_message(chat_id=CHANNEL_ID, text="سلام! این پیام تست زمان‌بندی است ⏰")
     logging.info("✅ پیام زمان‌بندی‌شده ارسال شد")
 
-async def send_5_message():
-    bot = Bot(BOT_TOKEN)
-    async with bot:
-        await bot.send_message(chat_id=CHANNEL_ID, text="سلام! پیام زمان‌بندی‌شده است ⏰⏰⏰⏰")
-
-# ------------------- تابع post_init برای Scheduler -------------------
+# ------------------- Scheduler -------------------
 async def start_scheduler(app):
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(send_table_to_channel, "cron", hour=20, minute=54)   # جدول هر روز ساعت 06:00
-    scheduler.add_job(send_daily_message, "cron", hour=10, minute=0)     # پیام روزانه ساعت 10:00
-    scheduler.add_job(send_5_message, "interval", seconds=30)
+
+    # 🔹 تست هر ۱ دقیقه یک پیام
+    scheduler.add_job(send_table_to_channel, "interval", minutes=1)
 
     scheduler.start()
-    logging.info("⏳ Scheduler فعال شد")
+    logging.info("⏳ Scheduler فعال شد (هر ۱ دقیقه پیام تست ارسال می‌شود)")
 
 # ------------------- اجرای ربات -------------------
 app = ApplicationBuilder().token(BOT_TOKEN).post_init(start_scheduler).build()
 app.add_handler(CommandHandler("start", start))
 
 print("ربات در حال اجراست...")
-
 app.run_polling()
-
