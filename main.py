@@ -11,7 +11,6 @@ from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
-from keep_alive import keep_alive
 
 # ------------------- تنظیمات -------------------
 BOT_TOKEN = "8272361954:AAG8DeqJE1gl5jtINNWw4GMyL-hX_FvAgZ0"
@@ -128,3 +127,4 @@ app.add_handler(CommandHandler("start", start))
 print("ربات در حال اجراست...")
 
 app.run_polling()
+
