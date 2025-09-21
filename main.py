@@ -11,31 +11,32 @@ from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
-from flask import Flask
-from threading import Thread
+from flask import Flask, request, abort
+import asyncio
 
 # ------------------- تنظیمات -------------------
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
 FONT_PATH = "Vazir.ttf"
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # مثل https://mybot.onrender.com/webhook
 
 logging.basicConfig(level=logging.INFO)
 
-# ------------------- وب‌سرور برای Render -------------------
-flask_app = Flask('')
+# ------------------- Flask برای Webhook -------------------
+flask_app = Flask(__name__)
 
 @flask_app.route('/')
 def home():
     return "Bot is alive!"
 
-def run():
-    flask_app.run(host='0.0.0.0', port=8080)
-
-def keep_alive():
-    t = Thread(target=run)
-    t.start()
-
-keep_alive()
+@flask_app.route('/webhook', methods=['POST'])
+def webhook():
+    if request.method == 'POST':
+        update = Update.de_json(request.get_json(force=True), bot)
+        asyncio.create_task(app.update_queue.put(update))
+        return '', 200
+    else:
+        abort(400)
 
 # ------------------- دریافت داده اوقات شرعی -------------------
 cities = []
@@ -110,33 +111,34 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("سلام! ربات روشن است ✅")
 
 async def send_table_to_channel():
-    bot = Bot(BOT_TOKEN)
     file_path = make_table_image()
-    async with bot:
+    async with Bot(BOT_TOKEN) as bot:
         with open(file_path, "rb") as photo:
             await bot.send_photo(chat_id=CHANNEL_ID, photo=photo)
     logging.info("✅ جدول به کانال ارسال شد")
 
 async def send_daily_message():
-    bot = Bot(BOT_TOKEN)
-    async with bot:
+    async with Bot(BOT_TOKEN) as bot:
         await bot.send_message(chat_id=CHANNEL_ID, text="سلام! پیام تست هر ۱ دقیقه ⏰")
     logging.info("✅ پیام تست ارسال شد")
 
 # ------------------- Scheduler -------------------
 async def start_scheduler(app):
     scheduler = AsyncIOScheduler()
-
-    # 🔹 هر ۱ دقیقه پیام تست و جدول ارسال شود
+    # تست سریع: هر ۱ دقیقه جدول و پیام ارسال شود
     scheduler.add_job(send_table_to_channel, "interval", minutes=1)
-    scheduler.add_job(send_daily_message, "interval", seconds=20)
-
+    scheduler.add_job(send_daily_message, "interval", minutes=1)
     scheduler.start()
     logging.info("⏳ Scheduler فعال شد (تست هر ۱ دقیقه)")
 
-# ------------------- اجرای ربات -------------------
+# ------------------- ساخت اپلیکیشن ربات -------------------
 app = ApplicationBuilder().token(BOT_TOKEN).post_init(start_scheduler).build()
 app.add_handler(CommandHandler("start", start))
 
-print("ربات در حال اجراست...")
-app.run_polling()
+bot = Bot(BOT_TOKEN)
+# تنظیم Webhook روی Render
+asyncio.get_event_loop().run_until_complete(bot.set_webhook(WEBHOOK_URL))
+
+# ------------------- اجرای Flask -------------------
+if __name__ == "__main__":
+    flask_app.run(host="0.0.0.0", port=8080)
