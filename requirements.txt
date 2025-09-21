@@ -1,9 +1,10 @@
-python-telegram-bot==20.8
+python-telegram-bot
 apscheduler
 matplotlib
 pandas
 arabic-reshaper
 python-bidi
 requests
+
 
 
