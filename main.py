@@ -18,7 +18,7 @@ import asyncio
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
 FONT_PATH = "Vazir.ttf"
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # مثل https://mybot.onrender.com/webhook
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # مثل https://your-render-url.onrender.com/webhook
 
 logging.basicConfig(level=logging.INFO)
 
@@ -127,7 +127,7 @@ async def start_scheduler(app):
     scheduler = AsyncIOScheduler()
     # تست سریع: هر ۱ دقیقه جدول و پیام ارسال شود
     scheduler.add_job(send_table_to_channel, "interval", minutes=1)
-    scheduler.add_job(send_daily_message, "interval", seconds=20)
+    scheduler.add_job(send_daily_message, "interval", seconds=27)
     scheduler.start()
     logging.info("⏳ Scheduler فعال شد (تست هر ۱ دقیقه)")
 
@@ -142,4 +142,3 @@ asyncio.get_event_loop().run_until_complete(bot.set_webhook(WEBHOOK_URL))
 # ------------------- اجرای Flask -------------------
 if __name__ == "__main__":
     flask_app.run(host="0.0.0.0", port=8080)
-
