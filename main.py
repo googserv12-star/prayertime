@@ -13,7 +13,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 
 # ------------------- تنظیمات -------------------
-BOT_TOKEN = os.getenv("BOT_TOKEN", "توکن_ربات_اینجا")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8272361954:AAG8DeqJE1gl5jtINNWw4GMyL-hX_FvAgZ0")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1003016016245"))  # آیدی کانال عددی
 FONT_PATH = "Vazir.ttf"
 
@@ -121,3 +121,4 @@ app.add_handler(CommandHandler("start", start))
 
 print("ربات در حال اجراست...")
 app.run_polling()
+
