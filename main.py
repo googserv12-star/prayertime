@@ -125,6 +125,6 @@ async def start_scheduler(app):
 app = ApplicationBuilder().token(BOT_TOKEN).post_init(start_scheduler).build()
 app.add_handler(CommandHandler("start", start))
 
-keep_alive()
 print("ربات در حال اجراست...")
+
 app.run_polling()
