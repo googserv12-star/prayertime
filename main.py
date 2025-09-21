@@ -11,13 +11,31 @@ from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
+from flask import Flask
+from threading import Thread
 
 # ------------------- تنظیمات -------------------
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8272361954:AAG8DeqJE1gl5jtINNWw4GMyL-hX_FvAgZ0")
-CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1003016016245"))  # آیدی کانال عددی
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
 FONT_PATH = "Vazir.ttf"
 
 logging.basicConfig(level=logging.INFO)
+
+# ------------------- وب‌سرور برای Render -------------------
+flask_app = Flask('')
+
+@flask_app.route('/')
+def home():
+    return "Bot is alive!"
+
+def run():
+    flask_app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
+keep_alive()
 
 # ------------------- دریافت داده اوقات شرعی -------------------
 cities = []
@@ -102,18 +120,19 @@ async def send_table_to_channel():
 async def send_daily_message():
     bot = Bot(BOT_TOKEN)
     async with bot:
-        await bot.send_message(chat_id=CHANNEL_ID, text="سلام! این پیام تست زمان‌بندی است ⏰")
-    logging.info("✅ پیام زمان‌بندی‌شده ارسال شد")
+        await bot.send_message(chat_id=CHANNEL_ID, text="سلام! پیام تست هر ۱ دقیقه ⏰")
+    logging.info("✅ پیام تست ارسال شد")
 
 # ------------------- Scheduler -------------------
 async def start_scheduler(app):
     scheduler = AsyncIOScheduler()
 
-    # 🔹 تست هر ۱ دقیقه یک پیام
+    # 🔹 هر ۱ دقیقه پیام تست و جدول ارسال شود
     scheduler.add_job(send_table_to_channel, "interval", minutes=1)
+    scheduler.add_job(send_daily_message, "interval", seconds=20)
 
     scheduler.start()
-    logging.info("⏳ Scheduler فعال شد (هر ۱ دقیقه پیام تست ارسال می‌شود)")
+    logging.info("⏳ Scheduler فعال شد (تست هر ۱ دقیقه)")
 
 # ------------------- اجرای ربات -------------------
 app = ApplicationBuilder().token(BOT_TOKEN).post_init(start_scheduler).build()
@@ -121,4 +140,3 @@ app.add_handler(CommandHandler("start", start))
 
 print("ربات در حال اجراست...")
 app.run_polling()
-
