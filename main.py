@@ -127,7 +127,7 @@ async def start_scheduler(app):
     scheduler = AsyncIOScheduler()
     # تست سریع: هر ۱ دقیقه جدول و پیام ارسال شود
     scheduler.add_job(send_table_to_channel, "interval", minutes=1)
-    scheduler.add_job(send_daily_message, "interval", minutes=1)
+    scheduler.add_job(send_daily_message, "interval", seconds=20)
     scheduler.start()
     logging.info("⏳ Scheduler فعال شد (تست هر ۱ دقیقه)")
 
@@ -142,3 +142,4 @@ asyncio.get_event_loop().run_until_complete(bot.set_webhook(WEBHOOK_URL))
 # ------------------- اجرای Flask -------------------
 if __name__ == "__main__":
     flask_app.run(host="0.0.0.0", port=8080)
+
